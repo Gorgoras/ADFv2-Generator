@@ -226,7 +226,7 @@ namespace ConsoleApp2
             DatasetReference drO1;
             PipelineResource pipe1;
             string consulta;
-            for (int i = 1199; i < nombreTablas.Length; i++)
+            for (int i = 0; i < nombreTablas.Length; i++)
             {
                 if (esTablaEspecial(nombreTablas[i])) {
                     //no creo nada porque tiene un trato especial
@@ -234,7 +234,7 @@ namespace ConsoleApp2
                 else
                 {
                     nombreTablaParaConsulta = nombreTablas[i].Replace('-', '.');
-                    consulta = DatosGrales.queryMagica(nombreTablaParaConsulta, 100000);
+                    consulta = DatosGrales.queryMagica(nombreTablaParaConsulta, 0);
                     la = new List<Activity>();
                     ca = new CopyActivity();
                     ca.Name = "CA-Compresion-" + nombreTablas[i];

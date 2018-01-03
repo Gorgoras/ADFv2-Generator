@@ -18,7 +18,7 @@ namespace ConsoleApp2
             {
                 Console.Write("\n\n************* TRIGGERS!! *************\n");
                 Console.Write("\nSeleccione una opcion:\n");
-                Console.Write("1. Crear trigger\n");
+                Console.Write("1. Crear trigger para pipes con compresion\n");
                 Console.Write("2. Play\n");
                 Console.Write("3. Stop\n");
                 Console.Write("4. Listar triggers\n");
@@ -32,10 +32,10 @@ namespace ConsoleApp2
                         createUpdateTrigger(client);
                         break;
                     case 2:
-                        client.Triggers.StartWithHttpMessagesAsync(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Trigger prueba tarea");
+                        client.Triggers.StartWithHttpMessagesAsync(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "TriggerCompresion");
                         break;
                     case 3:
-                        client.Triggers.StopWithHttpMessagesAsync(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Trigger prueba tarea");
+                        client.Triggers.StopWithHttpMessagesAsync(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "TriggerCompresion");
                         break;
                     case 4:
                         listarTriggers(client);
@@ -46,24 +46,32 @@ namespace ConsoleApp2
 
         public static void createUpdateTrigger(DataFactoryManagementClient client)
         {
-            PipelineReference pipe = new PipelineReference("Pipeline-Sql-DataLake-Tarea", "Pipeline-Sql-DataLake-Tarea");
-            TriggerPipelineReference[] triPipe = new TriggerPipelineReference[1];
-            triPipe[0] = new TriggerPipelineReference(pipe);
-            Dictionary<String, object> diccionarioParams = new Dictionary<String, object>();
-            diccionarioParams.Add("Param1", 1);
-            triPipe[0].Parameters = diccionarioParams;
+            string[] tablas = DatosGrales.traerTablas(true);
+            TriggerPipelineReference[] triPipe = new TriggerPipelineReference[tablas.Length];
+            PipelineReference pipe;
+            for (int i = 0; i < 10; i++)
+            {
 
-            DateTime hoy = DateTime.Now;
-            DateTime fin = hoy.AddDays(5);
-            ScheduleTriggerRecurrence str = new ScheduleTriggerRecurrence(null, "Minute", 3, hoy, fin);
+                pipe = new PipelineReference("Pipeline-Sql-DataLake-ConCompresion-Claim-" + tablas[i], "Pipeline-Sql-DataLake-ConCompresion-Claim-" + tablas[i]);
+                triPipe[i] = new TriggerPipelineReference(pipe);
+
+                //Agrego parametro dummy porque en realidad no uso, pero es obligatorio tener.
+                Dictionary<String, object> diccionarioParams = new Dictionary<String, object>();
+                diccionarioParams.Add("Param1", 1);
+                triPipe[i].Parameters = diccionarioParams;
+            }
+            DateTime hoy = DateTime.Now.AddDays(-2);
+            DateTime fin = hoy.AddDays(15);
+            ScheduleTriggerRecurrence str = new ScheduleTriggerRecurrence(null, "Week", 1, hoy, fin);
             str.TimeZone = "UTC";
 
-            ScheduleTrigger schedule = new ScheduleTrigger(null, "Trigger de prueba", "Started", triPipe, str);
+            ScheduleTrigger schedule = new ScheduleTrigger(null, "Trigger para pipes con compresion", "Started", triPipe, str);
 
-            TriggerResource trig = new TriggerResource(schedule, null, "Trigger1", "ScheduleTrigger");
+            TriggerResource trig = new TriggerResource(schedule, null, "TriggerCompresion", "ScheduleTrigger");
             //trig.Proper
 
-            client.Triggers.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Trigger prueba tarea", trig);
+            client.Triggers.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "TriggerCompresion", trig);
+            Console.WriteLine("Trigger creado! Buena suerte con ese schedule :)");
             //var aor = client.Triggers.StartWithHttpMessagesAsync(resourceGroup, dataFactoryName, "Trigger prueba tarea");
 
         }
