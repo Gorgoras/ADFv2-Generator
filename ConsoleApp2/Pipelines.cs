@@ -275,7 +275,7 @@ namespace ConsoleApp2
                     ca2.Outputs = outp1;
 
                     la.Add(ca2);
-
+                    
                     pipe1 = new PipelineResource();
 
                     pipe1.Activities = la;
@@ -378,7 +378,7 @@ namespace ConsoleApp2
                 pipelineRun = client.PipelineRuns.Get(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, runResponse.RunId);
                 Console.WriteLine("Status: " + pipelineRun.Status);
                 if (pipelineRun.Status == "InProgress")
-                    System.Threading.Thread.Sleep(15000);
+                    System.Threading.Thread.Sleep(10000);
                 else
                     break;
             }

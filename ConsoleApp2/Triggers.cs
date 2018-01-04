@@ -44,12 +44,12 @@ namespace ConsoleApp2
             }
         }
 
-        public static void createUpdateTrigger(DataFactoryManagementClient client)
+        public async static void createUpdateTrigger(DataFactoryManagementClient client)
         {
             string[] tablas = DatosGrales.traerTablas(true);
-            TriggerPipelineReference[] triPipe = new TriggerPipelineReference[tablas.Length];
+            TriggerPipelineReference[] triPipe = new TriggerPipelineReference[40];//tablas.Length
             PipelineReference pipe;
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 40; i++)
             {
 
                 pipe = new PipelineReference("Pipeline-Sql-DataLake-ConCompresion-Claim-" + tablas[i], "Pipeline-Sql-DataLake-ConCompresion-Claim-" + tablas[i]);
@@ -62,15 +62,19 @@ namespace ConsoleApp2
             }
             DateTime hoy = DateTime.Now.AddDays(-2);
             DateTime fin = hoy.AddDays(15);
-            ScheduleTriggerRecurrence str = new ScheduleTriggerRecurrence(null, "Week", 1, hoy, fin);
+            ScheduleTriggerRecurrence str = new ScheduleTriggerRecurrence(null, "Day", 1, hoy, fin);
             str.TimeZone = "UTC";
 
-            ScheduleTrigger schedule = new ScheduleTrigger(null, "Trigger para pipes con compresion", "Started", triPipe, str);
+            ScheduleTrigger schedule = new ScheduleTrigger(null, "Trigger para pipes con compresion", "Stopped", triPipe, str);
 
             TriggerResource trig = new TriggerResource(schedule, null, "TriggerCompresion", "ScheduleTrigger");
             //trig.Proper
-
-            client.Triggers.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "TriggerCompresion", trig);
+            
+            await client.Triggers.CreateOrUpdateAsync(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "TriggerCompresion", trig);
+            
+                
+                
+            
             Console.WriteLine("Trigger creado! Buena suerte con ese schedule :)");
             //var aor = client.Triggers.StartWithHttpMessagesAsync(resourceGroup, dataFactoryName, "Trigger prueba tarea");
 
@@ -80,12 +84,14 @@ namespace ConsoleApp2
         {
             var pl = client.Triggers.ListByFactory(DatosGrales.resourceGroup, DatosGrales.dataFactoryName);
             TriggerResource[] trigs = pl.ToArray<TriggerResource>();
+            TriggerResource tAux;
             Console.Write("\nLista de triggers: \n");
             for (int i = 0; i < trigs.Length; i++)
             {
                 Console.Write("" + (i + 1) + ": " + trigs[i].Name + "\n");
                 Console.Write("\t");
-                Console.Write("Trigger:" + trigs[i].Name + " ");
+                tAux = client.Triggers.Get(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, trigs[i].Name);
+                Console.Write("Trigger:" + tAux.Properties + " ");
                 Console.Write("estado: " + trigs[i].Properties.RuntimeState + "\n");
             }
             Console.Write("\n");
