@@ -29,7 +29,7 @@ namespace ConsoleApp2
                 switch (opcion)
                 {
                     case 1:
-                        createUpdateTrigger(client);
+                        createUpdateTrigger1(client);
                         break;
                     case 2:
                         client.Triggers.StartWithHttpMessagesAsync(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "TriggerCompresion");
@@ -50,7 +50,7 @@ namespace ConsoleApp2
             string[] tablas = DatosGrales.traerTablas(true);
             for (int o = 1; o < (tablas.Length) / 10; o++)
             {
-                if(o != Convert.ToInt32(tablas.Length / 10))
+                if (o != Convert.ToInt32(tablas.Length / 10))
                 {
                     triPipe = new TriggerPipelineReference[o * 10];//tablas.Length
                 }
@@ -58,11 +58,12 @@ namespace ConsoleApp2
                 {
                     triPipe = new TriggerPipelineReference[tablas.Length];
                 }
-                
+
                 PipelineReference pipe;
                 for (int i = 0; i < triPipe.Length; i++)
                 {
-                    if(!tablas[i].Contains("ccst")) {
+                    if (!tablas[i].Contains("ccst"))
+                    {
                         pipe = new PipelineReference("Pipeline-Sql-DataLake-ConCompresion-Claim-" + tablas[i], "Pipeline-Sql-DataLake-ConCompresion-Claim-" + tablas[i]);
                         triPipe[i] = new TriggerPipelineReference(pipe);
 
@@ -91,30 +92,69 @@ namespace ConsoleApp2
                     Console.WriteLine("Trigger con " + (o * 10) + " pipelines fallo, hacemos otro intento...");
                     o--;
                 }
-
-
-                
             }
             //var aor = client.Triggers.StartWithHttpMessagesAsync(resourceGroup, dataFactoryName, "Trigger prueba tarea");
 
         }
 
-        public static void listarTriggers(DataFactoryManagementClient client)
+        public static void createUpdateTrigger1(DataFactoryManagementClient client)
         {
-            var pl = client.Triggers.ListByFactory(DatosGrales.resourceGroup, DatosGrales.dataFactoryName);
-            TriggerResource[] trigs = pl.ToArray<TriggerResource>();
-            TriggerResource tAux;
-            Console.Write("\nLista de triggers: \n");
-            for (int i = 0; i < trigs.Length; i++)
+            TriggerPipelineReference[] triPipe;
+            string[] tablas = DatosGrales.traerTablas(true);
+            triPipe = new TriggerPipelineReference[5];
+            PipelineReference pipe;
+            for (int i = 0; i < triPipe.Length; i++)
             {
-                Console.Write("" + (i + 1) + ": " + trigs[i].Name + "\n");
-                Console.Write("\t");
-                tAux = client.Triggers.Get(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, trigs[i].Name);
-                Console.Write("Trigger:" + tAux.Properties + " ");
-                Console.Write("estado: " + trigs[i].Properties.RuntimeState + "\n");
-            }
-            Console.Write("\n");
+                if (!tablas[i].Contains("ccst"))
+                {
+                    pipe = new PipelineReference("Pipeline-Sql-DataLake-ConCompresion-Claim-" + tablas[i], "Pipeline-Sql-DataLake-ConCompresion-Claim-" + tablas[i]);
+                    triPipe[i] = new TriggerPipelineReference(pipe);
 
+                    //Agrego parametro dummy porque en realidad no uso, pero es obligatorio tener.
+                    Dictionary<String, object> diccionarioParams = new Dictionary<String, object>();
+                    diccionarioParams.Add("Param1", 1);
+                    triPipe[i].Parameters = diccionarioParams;
+                }
+            }
+            DateTime hoy = DateTime.Now.AddDays(-2);
+            DateTime fin = hoy.AddDays(15);
+            ScheduleTriggerRecurrence str = new ScheduleTriggerRecurrence(null, "Day", 1, hoy, fin);
+            str.TimeZone = "UTC";
+
+            ScheduleTrigger schedule = new ScheduleTrigger(null, "Trigger para pipes con compresion", "Stopped", triPipe, str);
+
+            TriggerResource trig = new TriggerResource(schedule, null, "CompresionSinCCST", "ScheduleTrigger");
+            //trig.Proper
+            try
+            {
+                TriggerResource trig1 = client.Triggers.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "CompresionSinCCST1", trig);
+                Console.WriteLine("Trigger creado!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Trigger fallo al crearse =(");
+
+            }
         }
+        //var aor = client.Triggers.StartWithHttpMessagesAsync(resourceGroup, dataFactoryName, "Trigger prueba tarea");
+    
+
+    public static void listarTriggers(DataFactoryManagementClient client)
+    {
+        var pl = client.Triggers.ListByFactory(DatosGrales.resourceGroup, DatosGrales.dataFactoryName);
+        TriggerResource[] trigs = pl.ToArray<TriggerResource>();
+        TriggerResource tAux;
+        Console.Write("\nLista de triggers: \n");
+        for (int i = 0; i < trigs.Length; i++)
+        {
+            Console.Write("" + (i + 1) + ": " + trigs[i].Name + "\n");
+            Console.Write("\t");
+            tAux = client.Triggers.Get(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, trigs[i].Name);
+            Console.Write("Trigger:" + tAux.Properties + " ");
+            Console.Write("estado: " + trigs[i].Properties.RuntimeState + "\n");
+        }
+        Console.Write("\n");
+
     }
+}
 }

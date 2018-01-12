@@ -9,19 +9,20 @@ namespace ConsoleApp2
 {
     static class DatosGrales
     {
-        public static string tenantID = "b6f16b85-9472-48bd-85f5-0dd35eafbb50";
-        public static string authenticationKey = "otGOzlQR+CTHpFAl6flh2uUSudUoygRvg80UAPNBE6Q=";
-        public static string applicationId = "653a7872-277b-4f6b-bbff-9163c76259b2";
-        public static string subscriptionId = "13c5fec6-29cf-4abf-9a64-f01376778ba9";
-        public static string dataFactoryName = "datafactorybi-v2-00";
-        public static string resourceGroup = "gr_bi_dw_00";
-        public static string onPremiseIntegrationRuntime = "Gateway01ADFv2-Test";
-        public static string azureSSISIntegrationRuntime = "AzureSSIS-00";
-        public static string azureIntegrationRuntime = "GatewayEnAzure";
-        public static string linkedServiceSQLServer = "SqlServerLinkedService-Claim";
-        public static string linkedServiceLake = "DataLakeStore-LinkedService";
-        public static string linkedServiceSSIS = "AzureSSIS-LinkedService";
-        public static string BDReferencia = "Data Source = DESKTOP-M220HEV\\SQLEXPRESS; Initial Catalog = ClaimCenter; User ID = supersa; Password=martin123";
+
+        public static string tenantID;// = "b6f16b85-9472-48bd-85f5-0dd35eafbb50";
+        public static string authenticationKey;// = "otGOzlQR+CTHpFAl6flh2uUSudUoygRvg80UAPNBE6Q=";
+        public static string applicationId;// = "653a7872-277b-4f6b-bbff-9163c76259b2";
+        public static string subscriptionId;// = "13c5fec6-29cf-4abf-9a64-f01376778ba9";
+        public static string dataFactoryName;// = "datafactorybi-v2-00";
+        public static string resourceGroup;// = "gr_bi_dw_00";
+        public static string onPremiseIntegrationRuntime;// = "Gateway01ADFv2-Test";
+        public static string azureSSISIntegrationRuntime;// = "AzureSSIS-00";
+        public static string azureIntegrationRuntime;// = "GatewayEnAzure";
+        public static string linkedServiceSQLServer;// = "SqlServerLinkedService-Claim";
+        public static string linkedServiceLake;// = "DataLakeStore-LinkedService";
+        public static string linkedServiceSSIS;// = "AzureSSIS-LinkedService";
+        public static string BDReferencia;// = "Data Source = DESKTOP-M220HEV\\SQLEXPRESS; Initial Catalog = ClaimCenter; User ID = supersa; Password=martin123";
         public static string[] tablasEspeciales = {
             "cc_checkpayee",
             "cc_vehicleowner",
