@@ -14,15 +14,17 @@ namespace ConsoleApp2
         public static void menu(DataFactoryManagementClient client)
         {
             int opcion = 0;
-            while (opcion != 5)
+            while (opcion != 7)
             {
                 Console.Write("\n\n************* LINKED SERVICES!! *************\n");
                 Console.Write("\nSeleccione una opcion:\n");
                 Console.Write("1. Crear SQL Servers On premise\n");
                 Console.Write("2. Crear Data Lake\n");
-                Console.Write("3. Crear Azure SSIS (test!)\n");
-                Console.Write("4. Listar linked services\n");
-                Console.Write("5. Volver al menu\n");
+                Console.Write("3. Crear Data Warehouse\n");
+                Console.Write("4. Crear Azure SSIS (test!)\n");
+                Console.Write("5. Listar linked services\n");
+                Console.Write("6. Eliminar linked services\n");
+                Console.Write("7. Volver al menu\n");
 
                 opcion = Int32.Parse(Console.ReadLine());
 
@@ -35,13 +37,47 @@ namespace ConsoleApp2
                         createDataLake(client);
                         break;
                     case 3:
-                        createAzureSSIS(client);
+                        createDataWarehouse(client);
                         break;
                     case 4:
+                        createAzureSSIS(client);
+                        break;
+                    case 5:
                         listarLinkedServices(client);
+                        break;
+                    case 6:
+                        eliminarLinkedService(client);
                         break;
                 }
             }
+        }
+
+        private static void eliminarLinkedService(DataFactoryManagementClient client)
+        {
+            Console.WriteLine("Ingrese el nombre del linked service a eliminar:");
+            string nombre = Console.ReadLine();
+            try
+            {
+                client.LinkedServices.Delete(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, nombre);
+                Console.WriteLine("Se elimino correctamente el linked service " + nombre);
+            }
+            catch (Exception ex) {
+                Console.WriteLine("Se produjo un error: " + ex.Message);
+            }
+
+        }
+
+        private static void createDataWarehouse(DataFactoryManagementClient client)
+        {
+            var IR = new IntegrationRuntimeReference(DatosGrales.azureIntegrationRuntime);
+            string nombreBD = DatosGrales.nombreBD;
+            var conStr = new SecureString("Server=tcp:sqlsrvdwbi00.database.windows.net,1433;Database=sqlsrvdwbi00;User ID=managerloc;Password=S4nCr1st0b4l;Trusted_Connection=False;Encrypt=True;Connection Timeout=30");
+            
+            LinkedServiceResource SqlServerLinkedServiceWarehouse = new LinkedServiceResource(
+               new AzureSqlDWLinkedService(conStr, null, IR, "Sql Warehouse - sqlsrvdwbi00"));
+
+            client.LinkedServices.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "SqlServerLinkedService-Warehouse", SqlServerLinkedServiceWarehouse);
+
         }
 
         private static void createAzureSSIS(DataFactoryManagementClient client)
@@ -88,12 +124,12 @@ namespace ConsoleApp2
         private static void createSQLServers(DataFactoryManagementClient client)
         {
             var IR = new IntegrationRuntimeReference(DatosGrales.onPremiseIntegrationRuntime);
-
+            string nombreBD = DatosGrales.nombreBD;
             var pass = new SecureString("LBDq1WEq");
             LinkedServiceResource SqlServerLinkedServiceClaim = new LinkedServiceResource(
                new SqlServerLinkedService(
-                   new SecureString(@"Data Source=ROW2K12SQL11;Initial Catalog=ClaimCenter;Integrated Security=True"), null, IR, "Sql Local - ClaimCenter", "SANCRISTOBAL\\_ser_azure_auto", pass));
-            client.LinkedServices.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "SqlServerLinkedService-Claim", SqlServerLinkedServiceClaim);
+                   new SecureString(@"Data Source=ROW2K12SQL11;Initial Catalog="+nombreBD+";Integrated Security=True"), null, IR, "Sql Local - "+nombreBD, "SANCRISTOBAL\\_ser_azure_auto", pass));
+            client.LinkedServices.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "SqlServerLinkedService-"+nombreBD, SqlServerLinkedServiceClaim);
 
         }
 

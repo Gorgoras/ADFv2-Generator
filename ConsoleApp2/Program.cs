@@ -15,12 +15,18 @@ namespace ConsoleApp2
         static void Main(string[] args)
         {
 
-            //Traigo datos grales del archivo
+            // Traigo datos grales del archivo
             cargarDatosGrales();
+
+            // Traigo tablas especiales
+            cargarTablasEspeciales();
 
             // Authenticate and create a data factory management client
             var client = loguearAzureRm();
-            
+
+            // Traer tablas para copiar del lake al warehouse
+            traerTablasLakeaWarehouse();
+
             int opcion = 0;
             
             while (opcion != 6)
@@ -53,18 +59,24 @@ namespace ConsoleApp2
                     case 5:
                         crearUpdateTriggers(client);
                         break;
-
-                }
-
-
-
-
+                }       
             }
+        }
+
+        private static void traerTablasLakeaWarehouse()
+        {
+            string[] tabLake = System.IO.File.ReadAllLines(Directory.GetCurrentDirectory() + @"\tablasLakeaWarehouse.txt");
+            DatosGrales.tablasLakeaWarehouse = tabLake;
+        }
+
+        private static void cargarTablasEspeciales()
+        {
+            string[] tabEsp = System.IO.File.ReadAllLines(Directory.GetCurrentDirectory() + @"\tablasEspeciales.txt");
+            DatosGrales.tablasEspeciales = tabEsp;
         }
 
         private static void cargarDatosGrales()
         {
-            string path = Directory.GetCurrentDirectory();
             string[] datosGrales = System.IO.File.ReadAllLines(Directory.GetCurrentDirectory() + @"\datos.txt");
             
             DatosGrales.tenantID = datosGrales[0].Split('|')[1];
@@ -80,6 +92,7 @@ namespace ConsoleApp2
             DatosGrales.linkedServiceLake = datosGrales[10].Split('|')[1];
             DatosGrales.linkedServiceSSIS = datosGrales[11].Split('|')[1];
             DatosGrales.BDReferencia = datosGrales[12].Split('|')[1];
+            DatosGrales.nombreBD = datosGrales[13].Split('|')[1];
         }
 
         public static void correrPipe(DataFactoryManagementClient client)

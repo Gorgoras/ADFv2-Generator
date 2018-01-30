@@ -205,6 +205,7 @@ namespace ConsoleApp2
         private static void correrTodosLosPipes(DataFactoryManagementClient client)
         {
             var nombres = DatosGrales.traerTablas(true);
+            string nombreBD = DatosGrales.nombreBD;
             //
             Exception exp = null;
             for (int i = 0; i < nombres.Length; i++)
@@ -214,12 +215,12 @@ namespace ConsoleApp2
                 {
                     try
                     {
-                        client.Pipelines.CreateRun(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombres[i], null);
+                        client.Pipelines.CreateRun(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Sql-DataLake-ConCompresion-"+nombreBD+"-" + nombres[i], null);
                         exp = null;
                     }
                     catch (Exception ex) { exp = ex; }
                 }
-                Console.Write((i + 1) + ". Run para pipe: Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombres[i] + " creado.\n");
+                Console.Write((i + 1) + ". Run para pipe: Pipeline-Sql-DataLake-ConCompresion-" + nombreBD + "-" + nombres[i] + " creado.\n");
             }
         }
 
@@ -237,6 +238,7 @@ namespace ConsoleApp2
 
         private static void crearPipesSubidaConCompresion(DataFactoryManagementClient client)
         {
+            string nombreBD = DatosGrales.nombreBD;
             string[] nombreTablas = DatosGrales.traerTablas(true);
             string[] nombreTablasParaCompresion = DatosGrales.traerTablas(false);
             List<Activity> la;
@@ -271,12 +273,12 @@ namespace ConsoleApp2
                     ca.Sink = new AzureDataLakeStoreSink();
 
                     inp = new List<DatasetReference>();
-                    dr = new DatasetReference("Dataset_Claim_" + nombreTablas[i]);
+                    dr = new DatasetReference("Dataset_" + nombreBD + "_" + nombreTablas[i]);
                     inp.Add(dr);
                     ca.Inputs = inp;
 
                     outp = new List<DatasetReference>();
-                    drO = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablasParaCompresion[i]);
+                    drO = new DatasetReference("Dataset_Descompresion_" + nombreBD + "_DataLakeStore_" + nombreTablasParaCompresion[i]);
                     outp.Add(drO);
                     ca.Outputs = outp;
 
@@ -294,12 +296,12 @@ namespace ConsoleApp2
 
 
                     inp1 = new List<DatasetReference>();
-                    dr1 = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablasParaCompresion[i]);
+                    dr1 = new DatasetReference("Dataset_Descompresion_" + nombreBD + "_DataLakeStore_" + nombreTablasParaCompresion[i]);
                     inp1.Add(dr1);
                     ca2.Inputs = inp1;
 
                     outp1 = new List<DatasetReference>();
-                    drO1 = new DatasetReference("Dataset_Claim_DataLakeStore_" + nombreTablasParaCompresion[i]);
+                    drO1 = new DatasetReference("Dataset_" + nombreBD + "_DataLakeStore_" + nombreTablasParaCompresion[i]);
                     outp1.Add(drO1);
                     ca2.Outputs = outp1;
 
@@ -309,8 +311,8 @@ namespace ConsoleApp2
 
                     pipe1.Activities = la;
 
-                    client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTablas[i], pipe1);
-                    Console.Write((i + 1) + ". Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTablas[i] + " creado.\n");
+                    client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Sql-DataLake-ConCompresion-" + nombreBD + "-" + nombreTablas[i], pipe1);
+                    Console.Write((i + 1) + ". Pipeline-Sql-DataLake-ConCompresion-" + nombreBD + "-" + nombreTablas[i] + " creado.\n");
                 }
             }
         }
@@ -329,6 +331,7 @@ namespace ConsoleApp2
             PipelineResource pipe;
             string nombreTablaParaConsulta;
             string consulta;
+            string nombreBD = DatosGrales.nombreBD;
             for (int i = 0; i < nombreTablas.Length; i++)
             {
                 if (esTablaEspecial(nombreTablas[i]))
@@ -346,13 +349,13 @@ namespace ConsoleApp2
                     ca.Sink = new SqlSink();
 
                     inp = new List<DatasetReference>();
-                    dr = new DatasetReference("Dataset_Claim_" + nombreTablas[i]);
+                    dr = new DatasetReference("Dataset_" + nombreBD + "_" + nombreTablas[i]);
 
                     inp.Add(dr);
                     ca.Inputs = inp;
 
                     outp = new List<DatasetReference>();
-                    drO = new DatasetReference("Dataset_Claim_DataLakeStore_" + nombreSinSchema[i]);
+                    drO = new DatasetReference("Dataset_" + nombreBD + "_DataLakeStore_" + nombreSinSchema[i]);
                     outp.Add(drO);
                     ca.Outputs = outp;
 
@@ -363,9 +366,9 @@ namespace ConsoleApp2
                     pipe = new PipelineResource();
                     pipe.Activities = la;
 
-                    client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Copy-Claim-" + nombreTablas[i], pipe);
+                    client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Copy-" + nombreBD + "-" + nombreTablas[i], pipe);
 
-                    Console.Write((i + 1) + ". Pipeline-Copy-Claim-" + nombreTablas[i] + " creado.\n");
+                    Console.Write((i + 1) + ". Pipeline-Copy-" + nombreBD + "-" + nombreTablas[i] + " creado.\n");
                 }
             }
         }
@@ -418,13 +421,13 @@ namespace ConsoleApp2
 
         private static void corregirPipes(DataFactoryManagementClient client)
         {
-            //corregirClaimSinCompresion(client);
+            corregirClaimSinCompresion(client);
             //corregirClaimConCompresion(client);
             //corregirAddressSinCompresion(client);
             //corregirAddressConCompresion(client);
             //corregirUserSinCompresion(client);
             //corregirUserConCompresion(client);
-            corregirPrueba(client);
+            //corregirPrueba(client);
 
         }
 
@@ -442,7 +445,7 @@ namespace ConsoleApp2
                 pipeRef = new PipelineReference("Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTablas[i], "Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTablas[i]);
                 Dictionary<String, object> diccionarioParams = new Dictionary<String, object>();
                 diccionarioParams.Add("Param1", 1);
-                ExecutePipelineActivity epa = new ExecutePipelineActivity("ExecPipe-"+nombreTablas[i], pipeRef, diccionarioParams, "Llama al pipe para "+nombreTablas[i], null, diccionarioParams, false);
+                ExecutePipelineActivity epa = new ExecutePipelineActivity("ExecPipe-" + nombreTablas[i], pipeRef, diccionarioParams, "Llama al pipe para " + nombreTablas[i], null, diccionarioParams, false);
 
                 la.Add(epa);
             }
@@ -454,405 +457,372 @@ namespace ConsoleApp2
 
 
         }
-    
-
-    private static void corregirUserConCompresion(DataFactoryManagementClient client)
-    {
-        string nombreTabla = "dbo-cc_user";
-        string nombreTablaParaCompresion = "cc_user";
-        List<Activity> la;
-        CopyActivity ca;
-        List<DatasetReference> inp;
-        DatasetReference dr;
-        List<DatasetReference> outp;
-        DatasetReference drO;
-        CopyActivity ca2;
-        List<ActivityDependency> dep;
-        List<DatasetReference> inp1;
-        DatasetReference dr1;
-        List<DatasetReference> outp1;
-        DatasetReference drO1;
-        PipelineResource pipe1;
-        string consultaNueva = "select top 10000 [LoadCommandID], [OffsetStatsUpdateTime], [PublicID], [CreateTime], [UserSettingsID], cast([SpatialPointDenorm] as nvarchar(MAX)), [SessionTimeoutSecs], [OrganizationID], [VacationStatus], [Department], [UpdateTime], [ExternalUser], [Language], [ExperienceLevel], [Locale], [ID], [LossType], [AuthorityProfileID], [CreateUserID], [BeanVersion], [NewlyAssignedActivities], [Retired], [DefaultPhoneCountry], [ValidationLevel], [PolicyType], [UpdateUserID], [QuickClaim], [CredentialID], [SystemUserType], [DefaultCountry], [TimeZone], [ContactID], [JobTitle] from cc_user";
 
 
-        la = new List<Activity>();
-        ca = new CopyActivity();
-        ca.Name = "CA-Compresion-" + nombreTabla;
-        ca.Source = new SqlSource(null, 3, null, consultaNueva);
-        ca.Sink = new AzureDataLakeStoreSink();
-
-        inp = new List<DatasetReference>();
-        dr = new DatasetReference("Dataset_Claim_" + nombreTabla);
-        inp.Add(dr);
-        ca.Inputs = inp;
-
-        outp = new List<DatasetReference>();
-        drO = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablaParaCompresion);
-        outp.Add(drO);
-        ca.Outputs = outp;
-
-        la.Add(ca);
-
-        ca2 = new CopyActivity();
-
-        ca2.Name = "CA-Descompresion-" + nombreTabla;
-        ca2.Source = new SqlSource();
-        ca2.Sink = new AzureDataLakeStoreSink();
-        string[] condiciones = { "Succeeded" };
-        dep = new List<ActivityDependency>();
-        dep.Add(new ActivityDependency("CA-Compresion-" + nombreTabla, condiciones));
-        ca2.DependsOn = dep;
+        private static void corregirUserConCompresion(DataFactoryManagementClient client)
+        {
+            string nombreTabla = "dbo-cc_user";
+            string nombreTablaParaCompresion = "cc_user";
+            List<Activity> la;
+            CopyActivity ca;
+            List<DatasetReference> inp;
+            DatasetReference dr;
+            List<DatasetReference> outp;
+            DatasetReference drO;
+            CopyActivity ca2;
+            List<ActivityDependency> dep;
+            List<DatasetReference> inp1;
+            DatasetReference dr1;
+            List<DatasetReference> outp1;
+            DatasetReference drO1;
+            PipelineResource pipe1;
+            string consultaNueva = "select top 10000 [LoadCommandID], [OffsetStatsUpdateTime], [PublicID], [CreateTime], [UserSettingsID], cast([SpatialPointDenorm] as nvarchar(MAX)), [SessionTimeoutSecs], [OrganizationID], [VacationStatus], [Department], [UpdateTime], [ExternalUser], [Language], [ExperienceLevel], [Locale], [ID], [LossType], [AuthorityProfileID], [CreateUserID], [BeanVersion], [NewlyAssignedActivities], [Retired], [DefaultPhoneCountry], [ValidationLevel], [PolicyType], [UpdateUserID], [QuickClaim], [CredentialID], [SystemUserType], [DefaultCountry], [TimeZone], [ContactID], [JobTitle] from cc_user";
 
 
-        inp1 = new List<DatasetReference>();
-        dr1 = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablaParaCompresion);
-        inp1.Add(dr1);
-        ca2.Inputs = inp1;
+            la = new List<Activity>();
+            ca = new CopyActivity();
+            ca.Name = "CA-Compresion-" + nombreTabla;
+            ca.Source = new SqlSource(null, 3, null, consultaNueva);
+            ca.Sink = new AzureDataLakeStoreSink();
 
-        outp1 = new List<DatasetReference>();
-        drO1 = new DatasetReference("Dataset_Claim_DataLakeStore_" + nombreTablaParaCompresion);
-        outp1.Add(drO1);
-        ca2.Outputs = outp1;
+            inp = new List<DatasetReference>();
+            dr = new DatasetReference("Dataset_Claim_" + nombreTabla);
+            inp.Add(dr);
+            ca.Inputs = inp;
 
-        la.Add(ca2);
+            outp = new List<DatasetReference>();
+            drO = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablaParaCompresion);
+            outp.Add(drO);
+            ca.Outputs = outp;
 
-        pipe1 = new PipelineResource();
+            la.Add(ca);
 
-        pipe1.Activities = la;
+            ca2 = new CopyActivity();
 
-        client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTabla, pipe1);
-        Console.Write("Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTabla + " modificado.\n");
+            ca2.Name = "CA-Descompresion-" + nombreTabla;
+            ca2.Source = new SqlSource();
+            ca2.Sink = new AzureDataLakeStoreSink();
+            string[] condiciones = { "Succeeded" };
+            dep = new List<ActivityDependency>();
+            dep.Add(new ActivityDependency("CA-Compresion-" + nombreTabla, condiciones));
+            ca2.DependsOn = dep;
+
+
+            inp1 = new List<DatasetReference>();
+            dr1 = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablaParaCompresion);
+            inp1.Add(dr1);
+            ca2.Inputs = inp1;
+
+            outp1 = new List<DatasetReference>();
+            drO1 = new DatasetReference("Dataset_Claim_DataLakeStore_" + nombreTablaParaCompresion);
+            outp1.Add(drO1);
+            ca2.Outputs = outp1;
+
+            la.Add(ca2);
+
+            pipe1 = new PipelineResource();
+
+            pipe1.Activities = la;
+
+            client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTabla, pipe1);
+            Console.Write("Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTabla + " modificado.\n");
+        }
+
+        private static void corregirUserSinCompresion(DataFactoryManagementClient client)
+        {
+            string nombreTabla = "dbo-cc_user";
+            string nombreTablaSinEsquema = "cc_user";
+            List<Activity> la;
+            CopyActivity ca;
+            List<DatasetReference> inp;
+            DatasetReference dr;
+            List<DatasetReference> outp;
+            DatasetReference drO;
+            PipelineResource pipe;
+            string nuevaConsulta = "select top 1000 [LoadCommandID], [OffsetStatsUpdateTime], [PublicID], [CreateTime], [UserSettingsID], cast([SpatialPointDenorm] as nvarchar(MAX)), [SessionTimeoutSecs], [OrganizationID], [VacationStatus], [Department], [UpdateTime], [ExternalUser], [Language], [ExperienceLevel], [Locale], [ID], [LossType], [AuthorityProfileID], [CreateUserID], [BeanVersion], [NewlyAssignedActivities], [Retired], [DefaultPhoneCountry], [ValidationLevel], [PolicyType], [UpdateUserID], [QuickClaim], [CredentialID], [SystemUserType], [DefaultCountry], [TimeZone], [ContactID], [JobTitle] from cc_user";
+
+            la = new List<Activity>();
+            ca = new CopyActivity();
+            ca.Name = "CopyPipeline-Sql-Lake-" + nombreTabla;
+            ca.Source = new SqlSource(null, 3, null, nuevaConsulta);
+            ca.Sink = new SqlSink();
+
+
+            inp = new List<DatasetReference>();
+            dr = new DatasetReference("Dataset_Claim_" + nombreTabla);
+
+            inp.Add(dr);
+            ca.Inputs = inp;
+
+            outp = new List<DatasetReference>();
+            drO = new DatasetReference("Dataset_Claim_DataLakeStore_" + nombreTablaSinEsquema);
+            outp.Add(drO);
+            ca.Outputs = outp;
+
+
+            la.Add(ca);
+
+
+            pipe = new PipelineResource();
+            pipe.Activities = la;
+
+            client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Copy-Claim-" + nombreTabla, pipe);
+            Console.Write("Pipeline-Copy-Claim-" + nombreTabla + " modificado.\n");
+        }
+
+        private static void corregirAddressConCompresion(DataFactoryManagementClient client)
+        {
+            string nombreTabla = "dbo-cc_address";
+            string nombreTablaParaCompresion = "cc_address";
+            List<Activity> la;
+            CopyActivity ca;
+            List<DatasetReference> inp;
+            DatasetReference dr;
+            List<DatasetReference> outp;
+            DatasetReference drO;
+            CopyActivity ca2;
+            List<ActivityDependency> dep;
+            List<DatasetReference> inp1;
+            DatasetReference dr1;
+            List<DatasetReference> outp1;
+            DatasetReference drO1;
+            PipelineResource pipe1;
+            string consultaNueva = "select top 10000 [LoadCommandID], [PublicID], [BatchGeocode], [CreateTime], [AddressLine1], [AddressLine2], [County], [AddressLine3], cast([SpatialPoint] as nvarchar(MAX)), [CityKanji], [AddressLine2Kanji], [Admin], [State], [AddressBookUID], [UpdateTime], [Country], [ID], [Ext_StreetType], [ExternalLinkID], [CreateUserID], [ValidUntil], [ArchivePartition], [BeanVersion], [CityDenorm], [Retired], [Ext_StreetNumber], [City], [AddressType], [AddressLine1Kanji], [UpdateUserID], [CEDEXBureau], [GeocodeStatus], [CEDEX], [PostalCodeDenorm], [PostalCode], [Subtype], [Description] from cc_address";
+
+
+            la = new List<Activity>();
+            ca = new CopyActivity();
+            ca.Name = "CA-Compresion-" + nombreTabla;
+            ca.Source = new SqlSource(null, 3, null, consultaNueva);
+            ca.Sink = new AzureDataLakeStoreSink();
+
+            inp = new List<DatasetReference>();
+            dr = new DatasetReference("Dataset_Claim_" + nombreTabla);
+            inp.Add(dr);
+            ca.Inputs = inp;
+
+            outp = new List<DatasetReference>();
+            drO = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablaParaCompresion);
+            outp.Add(drO);
+            ca.Outputs = outp;
+
+            la.Add(ca);
+
+            ca2 = new CopyActivity();
+
+            ca2.Name = "CA-Descompresion-" + nombreTabla;
+            ca2.Source = new SqlSource();
+            ca2.Sink = new AzureDataLakeStoreSink();
+            string[] condiciones = { "Succeeded" };
+            dep = new List<ActivityDependency>();
+            dep.Add(new ActivityDependency("CA-Compresion-" + nombreTabla, condiciones));
+            ca2.DependsOn = dep;
+
+
+            inp1 = new List<DatasetReference>();
+            dr1 = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablaParaCompresion);
+            inp1.Add(dr1);
+            ca2.Inputs = inp1;
+
+            outp1 = new List<DatasetReference>();
+            drO1 = new DatasetReference("Dataset_Claim_DataLakeStore_" + nombreTablaParaCompresion);
+            outp1.Add(drO1);
+            ca2.Outputs = outp1;
+
+            la.Add(ca2);
+
+            pipe1 = new PipelineResource();
+
+            pipe1.Activities = la;
+
+            client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTabla, pipe1);
+            Console.Write("Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTabla + " modificado.\n");
+        }
+
+        private static void corregirAddressSinCompresion(DataFactoryManagementClient client)
+        {
+            string nombreTabla = "dbo-cc_address";
+            string nombreTablaSinEsquema = "cc_address";
+            List<Activity> la;
+            CopyActivity ca;
+            List<DatasetReference> inp;
+            DatasetReference dr;
+            List<DatasetReference> outp;
+            DatasetReference drO;
+            PipelineResource pipe;
+            string nuevaConsulta = "select top 1000 [LoadCommandID], [PublicID], [BatchGeocode], [CreateTime], [AddressLine1], [AddressLine2], [County], [AddressLine3], cast([SpatialPoint] as nvarchar(MAX)), [CityKanji], [AddressLine2Kanji], [Admin], [State], [AddressBookUID], [UpdateTime], [Country], [ID], [Ext_StreetType], [ExternalLinkID], [CreateUserID], [ValidUntil], [ArchivePartition], [BeanVersion], [CityDenorm], [Retired], [Ext_StreetNumber], [City], [AddressType], [AddressLine1Kanji], [UpdateUserID], [CEDEXBureau], [GeocodeStatus], [CEDEX], [PostalCodeDenorm], [PostalCode], [Subtype], [Description] from cc_address";
+
+            la = new List<Activity>();
+            ca = new CopyActivity();
+            ca.Name = "CopyPipeline-Sql-Lake-" + nombreTabla;
+            ca.Source = new SqlSource(null, 3, null, nuevaConsulta);
+            ca.Sink = new SqlSink();
+
+
+            inp = new List<DatasetReference>();
+            dr = new DatasetReference("Dataset_Claim_" + nombreTabla);
+
+            inp.Add(dr);
+            ca.Inputs = inp;
+
+            outp = new List<DatasetReference>();
+            drO = new DatasetReference("Dataset_Claim_DataLakeStore_" + nombreTablaSinEsquema);
+            outp.Add(drO);
+            ca.Outputs = outp;
+
+
+            la.Add(ca);
+
+
+            pipe = new PipelineResource();
+            pipe.Activities = la;
+
+            client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Copy-Claim-" + nombreTabla, pipe);
+            Console.Write("Pipeline-Copy-Claim-" + nombreTabla + " modificado.\n");
+        }
+
+        private static void corregirClaimConCompresion(DataFactoryManagementClient client)
+        {
+            string nombreTabla = "dbo-cc_claim";
+            string nombreTablaParaCompresion = "cc_claim";
+            List<Activity> la;
+            CopyActivity ca;
+            List<DatasetReference> inp;
+            DatasetReference dr;
+            List<DatasetReference> outp;
+            DatasetReference drO;
+            CopyActivity ca2;
+            List<ActivityDependency> dep;
+            List<DatasetReference> inp1;
+            DatasetReference dr1;
+            List<DatasetReference> outp1;
+            DatasetReference drO1;
+            PipelineResource pipe1;
+            string consultaNueva = "select top 10000  [ReportedDate], [MainContactType], " +
+                "[Ext_Priority], [DateFormGivenToEmp], [PreviousGroupID], [Ext_TemporalClaimNumber], " +
+                "[SIULifeCycleState], [SafetyEquipProv], [FlaggedDate], [ExposureBegan], [AssignedByUserID], " +
+                "[DateRptdToAgent], [DiagnosticCnsistnt], [Currency], [DateRptdToEmployer], [LitigationStatus], " +
+                "[ExposureEnded], [PreviousQueueID], [UpdateTime], [StorageBoxNum], [StateFileNumber], " +
+                "[OtherRecovStatus], [DrugsInvolved], [ID], [ISOEnabled], [DateEligibleForArchive], [FlaggedReason]," +
+                " [ClaimTier], [ExaminationDate], [CreateUserID], [DeathDate], [Fault], [HowReported]," +
+                " [ReinsuranceFlaggedStatus], [LossCause], [BeanVersion], [ReOpenDate], [Progress], [UpdateUserID]," +
+                " [ModifiedDutyAvail], [EmploymentDataID], [InsurerSentMPNNotice], [Segment], [LocationOfTheft], " +
+                "[StorageType], [EmpQusValidity], [DateCompDcsnDue], [FaultRating], [PublicID], [ClaimantRprtdDate]," +
+                " [AssignedGroupID], [LossDate], [SupplementalWorkloadWeight], [ClaimSource], [SIEscalateSIU], " +
+                "[Ext_PermanentNumber], [SalvageStatus], [Flagged], [ComputerSecurity], [SafetyEquipUsed]," +
+                " [SubrogationStatus], [AssignedQueueID], [StorageLocationState], [EmpSentMPNNotice], " +
+                "[EmploymentInjury], [WorkloadUpdated], [ClosedOutcome], [ArchivePartition], [ISOReceiveDate], " +
+                "[InsuredPremises], [InjWkrInMPN], [PermissionRequired], [EmployerValidityReason], [Strategy], " +
+                "[AssignedUserID], [Ext_isFirstAndFinalWizardMode], [StorageCategory], [PTPinMPN], " +
+                "[Ext_LegacyClaimNumber], [LoadCommandID], [StatuteDate], [InjuredOnPremises], [DateFormRetByEmp]," +
+                " [InsuredDenormID], [TreatedPatientBfr], [ClaimNumber], [SIEscalateSIUdate], [IncidentReport]," +
+                " [PreexDisblty], [Ext_SofiaScore], [HospitalDays], [PoliceDeptInfo], [State], [SIUStatus]," +
+                " [FirstNoticeSuit], [Mold], [ReopenedReason], [StateAckNumber], [ReportedByType], [CloseDate], " +
+                "[Retired], [StorageDate], [FireDeptInfo], [ValidationLevel], [LOBCode], [WorkloadWeight], " +
+                "[Ext_LegacyPrismaNumber], [JurisdictionState], [ConcurrentEmp], [DateRptdToInsured], [ISOStatus]," +
+                " [WeatherRelated], [ISOSendDate], [LocationCodeID], [StorageVolumes], [CatastropheID], " +
+                "[StorageBarCodeNum], [InjuredRegularJob], [ClaimantDenormID], [LossLocationCode], [Ext_CombSettlement]," +
+                " [BenefitsStatusDcsn], [CreateTime], [AccidentType], [PolicyID], [FurtherTreatment], " +
+                "[ManifestationDate], [ReinsuranceReportable], [Ext_CreatedByAPI], [PurgeDate], [PreviousUserID], " +
+                "[LossType], [ISOKnown], [Ext_LegacyCreateDatetime], [AgencyId], [Ext_Priority_LastDate]," +
+                " [HospitalDate], cast([LossLocationSpatialDenorm] as nvarchar(MAX)), [ShowMedicalFirstInfo], " +
+                "[DateCompDcsnMade], [LockingColumn], [CurrentConditions], [CoverageInQuestion], [LossLocationID]," +
+                " [Weather], [MMIdate], [ClaimWorkCompID], [AssignmentDate], [LargeLossNotificationStatus]," +
+                " [Description], [SIScore], [AssignmentStatus], [HazardousWaste], [Ext_ClaimNumberSetDate], " +
+                "[Ext_SideatDenunciaNro], [Ext_Observation], [Ext_AssignmentReason], [Ext_CommentAssignment] " +
+                "from cc_claim";
+
+
+            la = new List<Activity>();
+            ca = new CopyActivity();
+            ca.Name = "CA-Compresion-" + nombreTabla;
+            ca.Source = new SqlSource(null, 3, null, consultaNueva);
+            ca.Sink = new AzureDataLakeStoreSink();
+
+            inp = new List<DatasetReference>();
+            dr = new DatasetReference("Dataset_Claim_" + nombreTabla);
+            inp.Add(dr);
+            ca.Inputs = inp;
+
+            outp = new List<DatasetReference>();
+            drO = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablaParaCompresion);
+            outp.Add(drO);
+            ca.Outputs = outp;
+
+            la.Add(ca);
+
+            ca2 = new CopyActivity();
+
+            ca2.Name = "CA-Descompresion-" + nombreTabla;
+            ca2.Source = new SqlSource();
+            ca2.Sink = new AzureDataLakeStoreSink();
+            string[] condiciones = { "Succeeded" };
+            dep = new List<ActivityDependency>();
+            dep.Add(new ActivityDependency("CA-Compresion-" + nombreTabla, condiciones));
+            ca2.DependsOn = dep;
+
+
+            inp1 = new List<DatasetReference>();
+            dr1 = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablaParaCompresion);
+            inp1.Add(dr1);
+            ca2.Inputs = inp1;
+
+            outp1 = new List<DatasetReference>();
+            drO1 = new DatasetReference("Dataset_Claim_DataLakeStore_" + nombreTablaParaCompresion);
+            outp1.Add(drO1);
+            ca2.Outputs = outp1;
+
+            la.Add(ca2);
+
+            pipe1 = new PipelineResource();
+
+            pipe1.Activities = la;
+
+            client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTabla, pipe1);
+            Console.Write("Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTabla + " modificado.\n");
+
+        }
+
+        private static void corregirClaimSinCompresion(DataFactoryManagementClient client)
+        {
+            string nombreTablaADW = "landing.pruebaDFv2_cc_history";
+            string nombreTablaSinEsquema = "cc_claim";
+            List<Activity> la;
+            CopyActivity ca;
+            List<DatasetReference> inp;
+            DatasetReference dr;
+            List<DatasetReference> outp;
+            DatasetReference drO;
+            PipelineResource pipe;
+
+            la = new List<Activity>();
+            ca = new CopyActivity();
+            ca.Name = "CopyPipeline-Lake-DW-" + "cc_history";
+            ca.Source = new AzureDataLakeStoreSource();
+            ca.Sink = new SqlDWSink();
+
+
+            inp = new List<DatasetReference>();
+            dr = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_cc_history");
+
+            inp.Add(dr);
+            ca.Inputs = inp;
+
+            outp = new List<DatasetReference>();
+            drO = new DatasetReference("Dataset_Warehouse_landing-pruebaDFv2_cc_history");
+            outp.Add(drO);
+            ca.Outputs = outp;
+
+
+            la.Add(ca);
+
+
+            pipe = new PipelineResource();
+            pipe.Activities = la;
+
+            client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Copy-Lake-ADW-cc_history", pipe);
+            Console.Write("Pipeline-Copy-Lake-ADW-cc_history creado.\n");
+        }
+
     }
-
-    private static void corregirUserSinCompresion(DataFactoryManagementClient client)
-    {
-        string nombreTabla = "dbo-cc_user";
-        string nombreTablaSinEsquema = "cc_user";
-        List<Activity> la;
-        CopyActivity ca;
-        List<DatasetReference> inp;
-        DatasetReference dr;
-        List<DatasetReference> outp;
-        DatasetReference drO;
-        PipelineResource pipe;
-        string nuevaConsulta = "select top 1000 [LoadCommandID], [OffsetStatsUpdateTime], [PublicID], [CreateTime], [UserSettingsID], cast([SpatialPointDenorm] as nvarchar(MAX)), [SessionTimeoutSecs], [OrganizationID], [VacationStatus], [Department], [UpdateTime], [ExternalUser], [Language], [ExperienceLevel], [Locale], [ID], [LossType], [AuthorityProfileID], [CreateUserID], [BeanVersion], [NewlyAssignedActivities], [Retired], [DefaultPhoneCountry], [ValidationLevel], [PolicyType], [UpdateUserID], [QuickClaim], [CredentialID], [SystemUserType], [DefaultCountry], [TimeZone], [ContactID], [JobTitle] from cc_user";
-
-        la = new List<Activity>();
-        ca = new CopyActivity();
-        ca.Name = "CopyPipeline-Sql-Lake-" + nombreTabla;
-        ca.Source = new SqlSource(null, 3, null, nuevaConsulta);
-        ca.Sink = new SqlSink();
-
-
-        inp = new List<DatasetReference>();
-        dr = new DatasetReference("Dataset_Claim_" + nombreTabla);
-
-        inp.Add(dr);
-        ca.Inputs = inp;
-
-        outp = new List<DatasetReference>();
-        drO = new DatasetReference("Dataset_Claim_DataLakeStore_" + nombreTablaSinEsquema);
-        outp.Add(drO);
-        ca.Outputs = outp;
-
-
-        la.Add(ca);
-
-
-        pipe = new PipelineResource();
-        pipe.Activities = la;
-
-        client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Copy-Claim-" + nombreTabla, pipe);
-        Console.Write("Pipeline-Copy-Claim-" + nombreTabla + " modificado.\n");
-    }
-
-    private static void corregirAddressConCompresion(DataFactoryManagementClient client)
-    {
-        string nombreTabla = "dbo-cc_address";
-        string nombreTablaParaCompresion = "cc_address";
-        List<Activity> la;
-        CopyActivity ca;
-        List<DatasetReference> inp;
-        DatasetReference dr;
-        List<DatasetReference> outp;
-        DatasetReference drO;
-        CopyActivity ca2;
-        List<ActivityDependency> dep;
-        List<DatasetReference> inp1;
-        DatasetReference dr1;
-        List<DatasetReference> outp1;
-        DatasetReference drO1;
-        PipelineResource pipe1;
-        string consultaNueva = "select top 10000 [LoadCommandID], [PublicID], [BatchGeocode], [CreateTime], [AddressLine1], [AddressLine2], [County], [AddressLine3], cast([SpatialPoint] as nvarchar(MAX)), [CityKanji], [AddressLine2Kanji], [Admin], [State], [AddressBookUID], [UpdateTime], [Country], [ID], [Ext_StreetType], [ExternalLinkID], [CreateUserID], [ValidUntil], [ArchivePartition], [BeanVersion], [CityDenorm], [Retired], [Ext_StreetNumber], [City], [AddressType], [AddressLine1Kanji], [UpdateUserID], [CEDEXBureau], [GeocodeStatus], [CEDEX], [PostalCodeDenorm], [PostalCode], [Subtype], [Description] from cc_address";
-
-
-        la = new List<Activity>();
-        ca = new CopyActivity();
-        ca.Name = "CA-Compresion-" + nombreTabla;
-        ca.Source = new SqlSource(null, 3, null, consultaNueva);
-        ca.Sink = new AzureDataLakeStoreSink();
-
-        inp = new List<DatasetReference>();
-        dr = new DatasetReference("Dataset_Claim_" + nombreTabla);
-        inp.Add(dr);
-        ca.Inputs = inp;
-
-        outp = new List<DatasetReference>();
-        drO = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablaParaCompresion);
-        outp.Add(drO);
-        ca.Outputs = outp;
-
-        la.Add(ca);
-
-        ca2 = new CopyActivity();
-
-        ca2.Name = "CA-Descompresion-" + nombreTabla;
-        ca2.Source = new SqlSource();
-        ca2.Sink = new AzureDataLakeStoreSink();
-        string[] condiciones = { "Succeeded" };
-        dep = new List<ActivityDependency>();
-        dep.Add(new ActivityDependency("CA-Compresion-" + nombreTabla, condiciones));
-        ca2.DependsOn = dep;
-
-
-        inp1 = new List<DatasetReference>();
-        dr1 = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablaParaCompresion);
-        inp1.Add(dr1);
-        ca2.Inputs = inp1;
-
-        outp1 = new List<DatasetReference>();
-        drO1 = new DatasetReference("Dataset_Claim_DataLakeStore_" + nombreTablaParaCompresion);
-        outp1.Add(drO1);
-        ca2.Outputs = outp1;
-
-        la.Add(ca2);
-
-        pipe1 = new PipelineResource();
-
-        pipe1.Activities = la;
-
-        client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTabla, pipe1);
-        Console.Write("Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTabla + " modificado.\n");
-    }
-
-    private static void corregirAddressSinCompresion(DataFactoryManagementClient client)
-    {
-        string nombreTabla = "dbo-cc_address";
-        string nombreTablaSinEsquema = "cc_address";
-        List<Activity> la;
-        CopyActivity ca;
-        List<DatasetReference> inp;
-        DatasetReference dr;
-        List<DatasetReference> outp;
-        DatasetReference drO;
-        PipelineResource pipe;
-        string nuevaConsulta = "select top 1000 [LoadCommandID], [PublicID], [BatchGeocode], [CreateTime], [AddressLine1], [AddressLine2], [County], [AddressLine3], cast([SpatialPoint] as nvarchar(MAX)), [CityKanji], [AddressLine2Kanji], [Admin], [State], [AddressBookUID], [UpdateTime], [Country], [ID], [Ext_StreetType], [ExternalLinkID], [CreateUserID], [ValidUntil], [ArchivePartition], [BeanVersion], [CityDenorm], [Retired], [Ext_StreetNumber], [City], [AddressType], [AddressLine1Kanji], [UpdateUserID], [CEDEXBureau], [GeocodeStatus], [CEDEX], [PostalCodeDenorm], [PostalCode], [Subtype], [Description] from cc_address";
-
-        la = new List<Activity>();
-        ca = new CopyActivity();
-        ca.Name = "CopyPipeline-Sql-Lake-" + nombreTabla;
-        ca.Source = new SqlSource(null, 3, null, nuevaConsulta);
-        ca.Sink = new SqlSink();
-
-
-        inp = new List<DatasetReference>();
-        dr = new DatasetReference("Dataset_Claim_" + nombreTabla);
-
-        inp.Add(dr);
-        ca.Inputs = inp;
-
-        outp = new List<DatasetReference>();
-        drO = new DatasetReference("Dataset_Claim_DataLakeStore_" + nombreTablaSinEsquema);
-        outp.Add(drO);
-        ca.Outputs = outp;
-
-
-        la.Add(ca);
-
-
-        pipe = new PipelineResource();
-        pipe.Activities = la;
-
-        client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Copy-Claim-" + nombreTabla, pipe);
-        Console.Write("Pipeline-Copy-Claim-" + nombreTabla + " modificado.\n");
-    }
-
-    private static void corregirClaimConCompresion(DataFactoryManagementClient client)
-    {
-        string nombreTabla = "dbo-cc_claim";
-        string nombreTablaParaCompresion = "cc_claim";
-        List<Activity> la;
-        CopyActivity ca;
-        List<DatasetReference> inp;
-        DatasetReference dr;
-        List<DatasetReference> outp;
-        DatasetReference drO;
-        CopyActivity ca2;
-        List<ActivityDependency> dep;
-        List<DatasetReference> inp1;
-        DatasetReference dr1;
-        List<DatasetReference> outp1;
-        DatasetReference drO1;
-        PipelineResource pipe1;
-        string consultaNueva = "select top 10000  [ReportedDate], [MainContactType], " +
-            "[Ext_Priority], [DateFormGivenToEmp], [PreviousGroupID], [Ext_TemporalClaimNumber], " +
-            "[SIULifeCycleState], [SafetyEquipProv], [FlaggedDate], [ExposureBegan], [AssignedByUserID], " +
-            "[DateRptdToAgent], [DiagnosticCnsistnt], [Currency], [DateRptdToEmployer], [LitigationStatus], " +
-            "[ExposureEnded], [PreviousQueueID], [UpdateTime], [StorageBoxNum], [StateFileNumber], " +
-            "[OtherRecovStatus], [DrugsInvolved], [ID], [ISOEnabled], [DateEligibleForArchive], [FlaggedReason]," +
-            " [ClaimTier], [ExaminationDate], [CreateUserID], [DeathDate], [Fault], [HowReported]," +
-            " [ReinsuranceFlaggedStatus], [LossCause], [BeanVersion], [ReOpenDate], [Progress], [UpdateUserID]," +
-            " [ModifiedDutyAvail], [EmploymentDataID], [InsurerSentMPNNotice], [Segment], [LocationOfTheft], " +
-            "[StorageType], [EmpQusValidity], [DateCompDcsnDue], [FaultRating], [PublicID], [ClaimantRprtdDate]," +
-            " [AssignedGroupID], [LossDate], [SupplementalWorkloadWeight], [ClaimSource], [SIEscalateSIU], " +
-            "[Ext_PermanentNumber], [SalvageStatus], [Flagged], [ComputerSecurity], [SafetyEquipUsed]," +
-            " [SubrogationStatus], [AssignedQueueID], [StorageLocationState], [EmpSentMPNNotice], " +
-            "[EmploymentInjury], [WorkloadUpdated], [ClosedOutcome], [ArchivePartition], [ISOReceiveDate], " +
-            "[InsuredPremises], [InjWkrInMPN], [PermissionRequired], [EmployerValidityReason], [Strategy], " +
-            "[AssignedUserID], [Ext_isFirstAndFinalWizardMode], [StorageCategory], [PTPinMPN], " +
-            "[Ext_LegacyClaimNumber], [LoadCommandID], [StatuteDate], [InjuredOnPremises], [DateFormRetByEmp]," +
-            " [InsuredDenormID], [TreatedPatientBfr], [ClaimNumber], [SIEscalateSIUdate], [IncidentReport]," +
-            " [PreexDisblty], [Ext_SofiaScore], [HospitalDays], [PoliceDeptInfo], [State], [SIUStatus]," +
-            " [FirstNoticeSuit], [Mold], [ReopenedReason], [StateAckNumber], [ReportedByType], [CloseDate], " +
-            "[Retired], [StorageDate], [FireDeptInfo], [ValidationLevel], [LOBCode], [WorkloadWeight], " +
-            "[Ext_LegacyPrismaNumber], [JurisdictionState], [ConcurrentEmp], [DateRptdToInsured], [ISOStatus]," +
-            " [WeatherRelated], [ISOSendDate], [LocationCodeID], [StorageVolumes], [CatastropheID], " +
-            "[StorageBarCodeNum], [InjuredRegularJob], [ClaimantDenormID], [LossLocationCode], [Ext_CombSettlement]," +
-            " [BenefitsStatusDcsn], [CreateTime], [AccidentType], [PolicyID], [FurtherTreatment], " +
-            "[ManifestationDate], [ReinsuranceReportable], [Ext_CreatedByAPI], [PurgeDate], [PreviousUserID], " +
-            "[LossType], [ISOKnown], [Ext_LegacyCreateDatetime], [AgencyId], [Ext_Priority_LastDate]," +
-            " [HospitalDate], cast([LossLocationSpatialDenorm] as nvarchar(MAX)), [ShowMedicalFirstInfo], " +
-            "[DateCompDcsnMade], [LockingColumn], [CurrentConditions], [CoverageInQuestion], [LossLocationID]," +
-            " [Weather], [MMIdate], [ClaimWorkCompID], [AssignmentDate], [LargeLossNotificationStatus]," +
-            " [Description], [SIScore], [AssignmentStatus], [HazardousWaste], [Ext_ClaimNumberSetDate], " +
-            "[Ext_SideatDenunciaNro], [Ext_Observation], [Ext_AssignmentReason], [Ext_CommentAssignment] " +
-            "from cc_claim";
-
-
-        la = new List<Activity>();
-        ca = new CopyActivity();
-        ca.Name = "CA-Compresion-" + nombreTabla;
-        ca.Source = new SqlSource(null, 3, null, consultaNueva);
-        ca.Sink = new AzureDataLakeStoreSink();
-
-        inp = new List<DatasetReference>();
-        dr = new DatasetReference("Dataset_Claim_" + nombreTabla);
-        inp.Add(dr);
-        ca.Inputs = inp;
-
-        outp = new List<DatasetReference>();
-        drO = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablaParaCompresion);
-        outp.Add(drO);
-        ca.Outputs = outp;
-
-        la.Add(ca);
-
-        ca2 = new CopyActivity();
-
-        ca2.Name = "CA-Descompresion-" + nombreTabla;
-        ca2.Source = new SqlSource();
-        ca2.Sink = new AzureDataLakeStoreSink();
-        string[] condiciones = { "Succeeded" };
-        dep = new List<ActivityDependency>();
-        dep.Add(new ActivityDependency("CA-Compresion-" + nombreTabla, condiciones));
-        ca2.DependsOn = dep;
-
-
-        inp1 = new List<DatasetReference>();
-        dr1 = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_" + nombreTablaParaCompresion);
-        inp1.Add(dr1);
-        ca2.Inputs = inp1;
-
-        outp1 = new List<DatasetReference>();
-        drO1 = new DatasetReference("Dataset_Claim_DataLakeStore_" + nombreTablaParaCompresion);
-        outp1.Add(drO1);
-        ca2.Outputs = outp1;
-
-        la.Add(ca2);
-
-        pipe1 = new PipelineResource();
-
-        pipe1.Activities = la;
-
-        client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTabla, pipe1);
-        Console.Write("Pipeline-Sql-DataLake-ConCompresion-Claim-" + nombreTabla + " modificado.\n");
-
-    }
-
-    private static void corregirClaimSinCompresion(DataFactoryManagementClient client)
-    {
-        string nombreTabla = "dbo-cc_claim";
-        string nombreTablaSinEsquema = "cc_claim";
-        List<Activity> la;
-        CopyActivity ca;
-        List<DatasetReference> inp;
-        DatasetReference dr;
-        List<DatasetReference> outp;
-        DatasetReference drO;
-        PipelineResource pipe;
-        string nuevaConsulta = "select top 1000  [ReportedDate], [MainContactType], " +
-            "[Ext_Priority], [DateFormGivenToEmp], [PreviousGroupID], [Ext_TemporalClaimNumber], " +
-            "[SIULifeCycleState], [SafetyEquipProv], [FlaggedDate], [ExposureBegan], [AssignedByUserID], " +
-            "[DateRptdToAgent], [DiagnosticCnsistnt], [Currency], [DateRptdToEmployer], [LitigationStatus], " +
-            "[ExposureEnded], [PreviousQueueID], [UpdateTime], [StorageBoxNum], [StateFileNumber], " +
-            "[OtherRecovStatus], [DrugsInvolved], [ID], [ISOEnabled], [DateEligibleForArchive], [FlaggedReason]," +
-            " [ClaimTier], [ExaminationDate], [CreateUserID], [DeathDate], [Fault], [HowReported]," +
-            " [ReinsuranceFlaggedStatus], [LossCause], [BeanVersion], [ReOpenDate], [Progress], [UpdateUserID]," +
-            " [ModifiedDutyAvail], [EmploymentDataID], [InsurerSentMPNNotice], [Segment], [LocationOfTheft], " +
-            "[StorageType], [EmpQusValidity], [DateCompDcsnDue], [FaultRating], [PublicID], [ClaimantRprtdDate]," +
-            " [AssignedGroupID], [LossDate], [SupplementalWorkloadWeight], [ClaimSource], [SIEscalateSIU], " +
-            "[Ext_PermanentNumber], [SalvageStatus], [Flagged], [ComputerSecurity], [SafetyEquipUsed]," +
-            " [SubrogationStatus], [AssignedQueueID], [StorageLocationState], [EmpSentMPNNotice], " +
-            "[EmploymentInjury], [WorkloadUpdated], [ClosedOutcome], [ArchivePartition], [ISOReceiveDate], " +
-            "[InsuredPremises], [InjWkrInMPN], [PermissionRequired], [EmployerValidityReason], [Strategy], " +
-            "[AssignedUserID], [Ext_isFirstAndFinalWizardMode], [StorageCategory], [PTPinMPN], " +
-            "[Ext_LegacyClaimNumber], [LoadCommandID], [StatuteDate], [InjuredOnPremises], [DateFormRetByEmp]," +
-            " [InsuredDenormID], [TreatedPatientBfr], [ClaimNumber], [SIEscalateSIUdate], [IncidentReport]," +
-            " [PreexDisblty], [Ext_SofiaScore], [HospitalDays], [PoliceDeptInfo], [State], [SIUStatus]," +
-            " [FirstNoticeSuit], [Mold], [ReopenedReason], [StateAckNumber], [ReportedByType], [CloseDate], " +
-            "[Retired], [StorageDate], [FireDeptInfo], [ValidationLevel], [LOBCode], [WorkloadWeight], " +
-            "[Ext_LegacyPrismaNumber], [JurisdictionState], [ConcurrentEmp], [DateRptdToInsured], [ISOStatus]," +
-            " [WeatherRelated], [ISOSendDate], [LocationCodeID], [StorageVolumes], [CatastropheID], " +
-            "[StorageBarCodeNum], [InjuredRegularJob], [ClaimantDenormID], [LossLocationCode], [Ext_CombSettlement]," +
-            " [BenefitsStatusDcsn], [CreateTime], [AccidentType], [PolicyID], [FurtherTreatment], " +
-            "[ManifestationDate], [ReinsuranceReportable], [Ext_CreatedByAPI], [PurgeDate], [PreviousUserID], " +
-            "[LossType], [ISOKnown], [Ext_LegacyCreateDatetime], [AgencyId], [Ext_Priority_LastDate]," +
-            " [HospitalDate], cast([LossLocationSpatialDenorm] as nvarchar(MAX)), [ShowMedicalFirstInfo], " +
-            "[DateCompDcsnMade], [LockingColumn], [CurrentConditions], [CoverageInQuestion], [LossLocationID]," +
-            " [Weather], [MMIdate], [ClaimWorkCompID], [AssignmentDate], [LargeLossNotificationStatus]," +
-            " [Description], [SIScore], [AssignmentStatus], [HazardousWaste], [Ext_ClaimNumberSetDate], " +
-            "[Ext_SideatDenunciaNro], [Ext_Observation], [Ext_AssignmentReason], [Ext_CommentAssignment] " +
-            "from cc_claim";
-
-        la = new List<Activity>();
-        ca = new CopyActivity();
-        ca.Name = "CopyPipeline-Sql-Lake-" + nombreTabla;
-        ca.Source = new SqlSource(null, 3, null, nuevaConsulta);
-        ca.Sink = new SqlSink();
-
-
-        inp = new List<DatasetReference>();
-        dr = new DatasetReference("Dataset_Claim_" + nombreTabla);
-
-        inp.Add(dr);
-        ca.Inputs = inp;
-
-        outp = new List<DatasetReference>();
-        drO = new DatasetReference("Dataset_Claim_DataLakeStore_" + nombreTablaSinEsquema);
-        outp.Add(drO);
-        ca.Outputs = outp;
-
-
-        la.Add(ca);
-
-
-        pipe = new PipelineResource();
-        pipe.Activities = la;
-
-        client.Pipelines.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Pipeline-Copy-Claim-" + nombreTabla, pipe);
-        Console.Write("Pipeline-Copy-Claim-" + nombreTabla + " modificado.\n");
-    }
-
-}
 }
