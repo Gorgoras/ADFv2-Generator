@@ -799,8 +799,8 @@ namespace ConsoleApp2
             ca = new CopyActivity();
             ca.Name = "CopyPipeline-Lake-DW-" + "cc_history";
             ca.Source = new AzureDataLakeStoreSource();
-            ca.Sink = new SqlDWSink();
-
+            ca.Sink = new SqlDWSink(allowPolyBase: true);
+            
 
             inp = new List<DatasetReference>();
             dr = new DatasetReference("Dataset_Descompresion_Claim_DataLakeStore_cc_history");

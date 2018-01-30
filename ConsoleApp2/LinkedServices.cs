@@ -71,7 +71,7 @@ namespace ConsoleApp2
         {
             var IR = new IntegrationRuntimeReference(DatosGrales.azureIntegrationRuntime);
             string nombreBD = DatosGrales.nombreBD;
-            var conStr = new SecureString("Server=tcp:sqlsrvdwbi00.database.windows.net,1433;Database=sqlsrvdwbi00;User ID=managerloc;Password=S4nCr1st0b4l;Trusted_Connection=False;Encrypt=True;Connection Timeout=30");
+            var conStr = new SecureString("Server=tcp:sqlsrvbi00.database.windows.net,1433;Database=sqlsrvdwbi00;User ID=managerloc@sqlsrvbi00;Password=S4nCr1st0b4l;Trusted_Connection=False;Encrypt=True;Connection Timeout=30");
             
             LinkedServiceResource SqlServerLinkedServiceWarehouse = new LinkedServiceResource(
                new AzureSqlDWLinkedService(conStr, null, IR, "Sql Warehouse - sqlsrvdwbi00"));

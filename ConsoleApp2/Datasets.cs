@@ -74,7 +74,7 @@ namespace ConsoleApp2
 
         private static void corregirDatasets(DataFactoryManagementClient client)
         {
-            throw new NotImplementedException();
+           
 
         }
 
@@ -179,7 +179,7 @@ namespace ConsoleApp2
                 sqlDataset = new DatasetResource(
                     new SqlServerTableDataset(
                         new LinkedServiceReference(DatosGrales.linkedServiceSQLServer), nombreTablas[i]));
-
+                
                 dsResult = client.Datasets.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Dataset_" + nombreBD + "_" + nombreTablas[i], sqlDataset);
                 Console.Write((i + 1) + ". Dataset_" + nombreBD + "_" + nombreTablas[i] + " creado.\n");
             }
