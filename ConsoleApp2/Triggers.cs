@@ -78,7 +78,7 @@ namespace ConsoleApp2
                 ScheduleTriggerRecurrence str = new ScheduleTriggerRecurrence(null, "Day", 1, hoy, fin);
                 str.TimeZone = "UTC";
 
-                ScheduleTrigger schedule = new ScheduleTrigger(null, "Trigger para pipes con compresion", "Stopped", triPipe, str);
+                ScheduleTrigger schedule = new ScheduleTrigger(str ,null, "Trigger para pipes con compresion", "Stopped", triPipe);
 
                 TriggerResource trig = new TriggerResource(schedule, null, "CompresionSinCCST", "ScheduleTrigger");
                 //trig.Proper
@@ -121,7 +121,7 @@ namespace ConsoleApp2
             ScheduleTriggerRecurrence str = new ScheduleTriggerRecurrence(null, "Day", 1, hoy, fin);
             str.TimeZone = "UTC";
 
-            ScheduleTrigger schedule = new ScheduleTrigger(null, "Trigger para pipes con compresion", "Stopped", triPipe, str);
+            ScheduleTrigger schedule = new ScheduleTrigger(str, null, "Trigger para pipes con compresion", "Stopped", triPipe);
 
             TriggerResource trig = new TriggerResource(schedule, null, "CompresionSinCCST", "ScheduleTrigger");
             //trig.Proper

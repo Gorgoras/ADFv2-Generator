@@ -25,7 +25,13 @@ namespace ConsoleApp2
         public static string nombreBD;
         public static string[] tablasEspeciales = { };
         public static string[] tablasLakeaWarehouse = { };
-        public static string linkedServiceWarehouse = "SqlServerLinkedService-Warehouse";
+        public static string linkedServiceWarehouse = "SqlServerLinkedServiceWarehouse";
+        public static string warehouseConnectionString;
+        public static string usuarioOnPremise;
+        public static string passwordOnPremise;
+        public static string nombreBDWarehouse;
+        public static string usuarioWarehouse;
+        public static string passwordWarehouse;
 
 
         public static string[] traerTablas(Boolean conSchema)
@@ -85,8 +91,8 @@ namespace ConsoleApp2
                 UNION
                 SELECT C.COLUMN_ID
 	            	,CASE WHEN C.column_id=1 THEN '' ELSE ',' END 
-	                + CASE 	WHEN C.user_type_id IN (167,231) THEN 'REPLACE(REPLACE(REPLACE(['+C.name+'], CHAR(13),'' ''), CHAR(10), '' ''), ''|'', '''')' 
-			        WHEN C.user_type_id in (130) THEN 'CAST(['+C.name+'] as nvarchar(4000)) ' 
+	                + CASE 	WHEN C.user_type_id IN (167,231) THEN 'CAST(REPLACE(REPLACE(REPLACE(['+C.name+'], CHAR(13),'' ''), CHAR(10), '' ''), ''|'', '''') as varchar(2500))' 
+			        WHEN C.user_type_id in (130) THEN 'CAST(['+C.name+'] as varchar(1000)) ' 
 			        else '['+c.name+']' end 
 	                + ' as [' + C.name+ ']'
 		        FROM SYS.COLUMNS C
@@ -110,5 +116,29 @@ namespace ConsoleApp2
                 exec sp_executesql @stmt=@query1";
             return consulta;
         }
+
+        public static string traerCamposPolybase(string nombreTabla)
+        {
+            string ret = "";
+            SqlConnection con1 = new SqlConnection(DatosGrales.BDReferencia);
+            string query = "select COLUMN_NAME from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='" + nombreTabla + "' order by ORDINAL_POSITION";
+            string campoActual;
+            var cmd = new SqlCommand(query, con1);
+            con1.Open();
+            SqlDataReader varReader = cmd.ExecuteReader();
+            
+            while (varReader.Read())
+            {
+                campoActual = (string)varReader.GetValue(0) + ": " + (string)varReader.GetValue(0) +", ";
+                ret = ret + campoActual;
+            }
+
+            ret = ret.Substring(0, ret.Length - 1);
+            con1.Close();
+
+            return ret;
+        }
+
+       
     }
 }

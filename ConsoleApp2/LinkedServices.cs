@@ -70,11 +70,10 @@ namespace ConsoleApp2
         private static void createDataWarehouse(DataFactoryManagementClient client)
         {
             var IR = new IntegrationRuntimeReference(DatosGrales.azureIntegrationRuntime);
-            string nombreBD = DatosGrales.nombreBD;
-            var conStr = new SecureString("Server=tcp:sqlsrvbi00.database.windows.net,1433;Database=sqlsrvdwbi00;User ID=managerloc@sqlsrvbi00;Password=S4nCr1st0b4l;Trusted_Connection=False;Encrypt=True;Connection Timeout=30");
+            var conStr = new SecureString(DatosGrales.warehouseConnectionString);
             
             LinkedServiceResource SqlServerLinkedServiceWarehouse = new LinkedServiceResource(
-               new AzureSqlDWLinkedService(conStr, null, IR, "Sql Warehouse - sqlsrvdwbi00"));
+               new AzureSqlDWLinkedService(conStr, null, IR, "Sql Warehouse - "+DatosGrales.nombreBDWarehouse));
 
             client.LinkedServices.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "SqlServerLinkedService-Warehouse", SqlServerLinkedServiceWarehouse);
 
@@ -84,10 +83,10 @@ namespace ConsoleApp2
         {
             var IR = new IntegrationRuntimeReference(DatosGrales.onPremiseIntegrationRuntime);
 
-            var pass = new SecureString("S4nCr1st0b4l");
+            var pass = new SecureString(DatosGrales.passwordWarehouse);
             LinkedServiceResource SqlServerLinkedServiceSSIS = new LinkedServiceResource(
                new SqlServerLinkedService(
-                   new SecureString(@"Data Source=sqlsrvbi00.database.windows.net;Initial Catalog=SSISDB;Integrated Security=False"), null, IR, "Sql que hostea el SSIS", "managerloc", pass));
+                   new SecureString(@"Data Source=sqlsrvbi00.database.windows.net;Initial Catalog=SSISDB;Integrated Security=False"), null, IR, "Sql que hostea el SSIS", DatosGrales.usuarioWarehouse, pass));
             client.LinkedServices.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, DatosGrales.linkedServiceSSIS, SqlServerLinkedServiceSSIS);
 
         }
@@ -115,9 +114,8 @@ namespace ConsoleApp2
             DataLakeLinkedService.SubscriptionId = DatosGrales.subscriptionId;
             DataLakeLinkedService.Tenant = DatosGrales.tenantID;
             LinkedServiceResource DataLakeResource = new LinkedServiceResource(DataLakeLinkedService);
-            DataLakeResource.Properties.ConnectVia = new IntegrationRuntimeReference("GatewayEnAzure");
-
-            client.LinkedServices.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "DataLakeStore-LinkedService", DataLakeResource);
+            DataLakeResource.Properties.ConnectVia = new IntegrationRuntimeReference(DatosGrales.azureIntegrationRuntime);
+            client.LinkedServices.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, DatosGrales.linkedServiceLake, DataLakeResource);
 
         }
 
@@ -125,10 +123,10 @@ namespace ConsoleApp2
         {
             var IR = new IntegrationRuntimeReference(DatosGrales.onPremiseIntegrationRuntime);
             string nombreBD = DatosGrales.nombreBD;
-            var pass = new SecureString("LBDq1WEq");
+            var pass = new SecureString(DatosGrales.passwordOnPremise);
             LinkedServiceResource SqlServerLinkedServiceClaim = new LinkedServiceResource(
                new SqlServerLinkedService(
-                   new SecureString(@"Data Source=ROW2K12SQL11;Initial Catalog="+nombreBD+";Integrated Security=True"), null, IR, "Sql Local - "+nombreBD, "SANCRISTOBAL\\_ser_azure_auto", pass));
+                   new SecureString(@"Data Source=ROW2K12SQL11;Initial Catalog="+nombreBD+";Integrated Security=True"), null, IR, "Sql Local - "+nombreBD, DatosGrales.usuarioOnPremise, pass));
             client.LinkedServices.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "SqlServerLinkedService-"+nombreBD, SqlServerLinkedServiceClaim);
 
         }

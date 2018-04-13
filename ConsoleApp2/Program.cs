@@ -15,6 +15,7 @@ namespace ConsoleApp2
         static void Main(string[] args)
         {
 
+
             // Traigo datos grales del archivo
             cargarDatosGrales();
 
@@ -76,6 +77,7 @@ namespace ConsoleApp2
         }
 
         private static void cargarDatosGrales()
+
         {
             string[] datosGrales = System.IO.File.ReadAllLines(Directory.GetCurrentDirectory() + @"\datos.txt");
             
@@ -93,6 +95,12 @@ namespace ConsoleApp2
             DatosGrales.linkedServiceSSIS = datosGrales[11].Split('|')[1];
             DatosGrales.BDReferencia = datosGrales[12].Split('|')[1];
             DatosGrales.nombreBD = datosGrales[13].Split('|')[1];
+            DatosGrales.warehouseConnectionString = datosGrales[14].Split('|')[1];
+            DatosGrales.usuarioOnPremise = datosGrales[15].Split('|')[1];
+            DatosGrales.passwordOnPremise = datosGrales[16].Split('|')[1];
+            DatosGrales.nombreBDWarehouse = datosGrales[17].Split('|')[1];
+            DatosGrales.usuarioWarehouse = datosGrales[18].Split('|')[1];
+            DatosGrales.passwordWarehouse = datosGrales[19].Split('|')[1];
         }
 
         public static void correrPipe(DataFactoryManagementClient client)

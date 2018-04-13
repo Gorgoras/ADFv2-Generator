@@ -13,7 +13,7 @@ namespace ConsoleApp2
         public static void menu(DataFactoryManagementClient client)
         {
             int opcion = 0;
-            while (opcion != 8)
+            while (opcion != 9)
             {
                 Console.Write("\n\n************* DATASETS!! *************\n");
                 Console.Write("\nSeleccione una opcion:\n");
@@ -24,7 +24,8 @@ namespace ConsoleApp2
                 Console.Write("5. Crear dummy dataset para SSIS\n");
                 Console.Write("6. Corregir datasets\n");
                 Console.Write("7. Listar datasets\n");
-                Console.Write("8. Volver al menu\n");
+                Console.Write("8. Crear datasets para dinamismo de ETL\n");
+                Console.Write("9. Volver al menu\n");
 
                 opcion = Int32.Parse(Console.ReadLine());
 
@@ -51,8 +52,39 @@ namespace ConsoleApp2
                     case 7:
                         listarDatasets(client);
                         break;
+                    case 8:
+                        crearDatasetsDinamismo(client);
+                        break;
                 }
             }
+        }
+
+        private static void crearDatasetsDinamismo(DataFactoryManagementClient client)
+        {   ///SQL on premise para claim center
+            DatasetResource sqlDataset = new DatasetResource(
+                    new SqlServerTableDataset(
+                        new LinkedServiceReference("SqlServerLinkedServiceClaim"), "DinamismoClaimCenter"));
+
+            client.Datasets.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Dataset_Dinamismo_Claim", sqlDataset);
+            Console.WriteLine("Creado dataset para dinamismo en claim center on premise.");
+
+            ///SQL en warehouse para claim center (todos en realidad)
+            DatasetResource sqlDataset1 = new DatasetResource(
+                    new SqlServerTableDataset(
+                        new LinkedServiceReference("SqlServerLinkedServiceWarehouse"), "dbo.ScriptsCreacion"));
+
+            client.Datasets.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Dataset_WHDinamismo_Claim", sqlDataset1);
+            Console.WriteLine("Creado dataset para dinamismo en claim center en warehouse.");
+
+            ///SQL on premise para Datastaging
+            DatasetResource sqlDataset2 = new DatasetResource(
+                    new SqlServerTableDataset(
+                        new LinkedServiceReference("SqlServerLinkedServiceDataStaging"), "DinamismoDatastaging"));
+
+            client.Datasets.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Dataset_Dinamismo_Datastaging", sqlDataset2);
+            Console.WriteLine("Creado dataset para dinamismo en datastaging on premise.");
+            
+
         }
 
         private static void createDatasetsWarehouse(DataFactoryManagementClient client)
@@ -66,16 +98,52 @@ namespace ConsoleApp2
                 sqlDatawarehouse = new DatasetResource(
                     new SqlServerTableDataset(
                         new LinkedServiceReference(DatosGrales.linkedServiceWarehouse), tablasWarehouse[i]));
+                DatasetDataElement[] estructura = armarEstructuraDataset(tablasWarehouse[i].Split('.')[1]);
+
+                sqlDatawarehouse.Properties.Structure = estructura;
+                
+
                 nombreSinPunto = tablasWarehouse[i].Replace('.', '-');
-                client.Datasets.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Dataset_Warehouse_" + nombreSinPunto, sqlDatawarehouse);
-                Console.Write((i + 1) + ". Dataset_Warehouse_" + nombreSinPunto + " creado.\n");
+                if (tablasWarehouse[i] == "landing.ccst_RAJ")
+                {
+                    client.Datasets.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Dataset_Warehouse_" + nombreSinPunto, sqlDatawarehouse);
+                    Console.Write((i + 1) + ". Dataset_Warehouse_" + nombreSinPunto + " creado.\n");
+                }
             }
+        }
+
+        private static DatasetDataElement[] armarEstructuraDataset(string nombreTabla)
+        {
+            //Traigo cuantas columnas son
+            SqlConnection con = new SqlConnection(DatosGrales.warehouseConnectionString);
+            String query = "select COUNT(*) from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='" + nombreTabla + "'";
+            SqlCommand cmd = new SqlCommand(query, con);
+            con.Open();
+            int cant = (int)cmd.ExecuteScalar();
+            con.Close();
+
+            DatasetDataElement[] ret = new DatasetDataElement[cant];
+            query = "select COLUMN_NAME from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='" + nombreTabla + "'";
+
+            cmd = new SqlCommand(query, con);
+            con.Open();
+            SqlDataReader varReader = cmd.ExecuteReader();
+            int o = 0;
+            while (varReader.Read())
+            {
+                ret[o] = new DatasetDataElement((string)varReader.GetValue(0), "String");
+                o++;
+            }
+            con.Close();
+
+            return ret;
+
         }
 
         private static void corregirDatasets(DataFactoryManagementClient client)
         {
-           
 
+            
         }
 
         private static void createDummyDatasetForSSIS(DataFactoryManagementClient client)
@@ -96,26 +164,28 @@ namespace ConsoleApp2
             DatasetResource DataLakeDataset;
             string nombreBD = DatosGrales.nombreBD;
 
-            for (int i = 0; i < nombreTablas.Length; i++)
+            for (int i = 1190; i < nombreTablas.Length; i++)
             {
                 dlsd.LinkedServiceName = new LinkedServiceReference(DatosGrales.linkedServiceLake);
                 dlsd.FolderPath = "Transient Data/" + nombreBD + "/";
                 dlsd.FileName = nombreTablas[i] + ".csv.gz";
                 dlsd.Compression = new DatasetGZipCompression(null, "Optimal");
-
-
-
+                
                 txtfrm = new TextFormat();
 
                 txtfrm.ColumnDelimiter = "|";
+                txtfrm.EncodingName = "Windows-1252";
                 txtfrm.FirstRowAsHeader = true;
-                txtfrm.NullValue = "NULL";
+                //txtfrm.NullValue = "";
+                txtfrm.TreatEmptyAsNull = true;
                 //txtfrm.QuoteChar = "{";
 
 
                 dlsd.Format = txtfrm;
 
                 DataLakeDataset = new DatasetResource(dlsd);
+
+                if (nombreBD == "ClaimCenter") nombreBD = "Claim";
 
                 client.Datasets.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Dataset_Descompresion_" + nombreBD + "_DataLakeStore_" + nombreTablas[i], DataLakeDataset);
                 Console.Write((i + 1) + ". Dataset_Descompresion_" + nombreBD + "_DataLakeStore_" + nombreTablas[i] + " creado.\n");
@@ -142,12 +212,12 @@ namespace ConsoleApp2
             AzureDataLakeStoreDataset dlsd1;
             TextFormat txtfrm1;
             DatasetResource DataLakeDataset1;
-            for (int i = 0; i < nombreTablas.Length; i++)
+            for (int i = 1050; i < nombreTablas.Length; i++)
             {
                 string nombreBD = DatosGrales.nombreBD;
                 dlsd1 = new AzureDataLakeStoreDataset();
                 dlsd1.LinkedServiceName = new LinkedServiceReference(DatosGrales.linkedServiceLake);
-                dlsd1.FolderPath = "Raw Data/" + nombreBD + "/";
+                dlsd1.FolderPath = "Raw Data/"+ nombreBD + "/";
                 dlsd1.FileName = nombreTablas[i] + ".csv";
 
 
@@ -156,10 +226,13 @@ namespace ConsoleApp2
                 txtfrm1.ColumnDelimiter = "|";
                 txtfrm1.EncodingName = "Windows-1252"; //default es utf-8, pero no acepta acentos.
                 txtfrm1.FirstRowAsHeader = true;
-                txtfrm1.NullValue = "NULL";
+                txtfrm1.TreatEmptyAsNull = true;
+                //txtfrm1.NullValue = "";
                 dlsd1.Format = txtfrm1;
 
                 DataLakeDataset1 = new DatasetResource(dlsd1);
+                
+                if (nombreBD == "ClaimCenter") nombreBD = "Claim";
 
                 client.Datasets.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Dataset_" + nombreBD + "_DataLakeStore_" + nombreTablas[i], DataLakeDataset1);
                 Console.Write((i + 1) + ". Dataset_" + nombreBD + "_DataLakeStore_" + nombreTablas[i] + " creado.\n");
@@ -179,7 +252,7 @@ namespace ConsoleApp2
                 sqlDataset = new DatasetResource(
                     new SqlServerTableDataset(
                         new LinkedServiceReference(DatosGrales.linkedServiceSQLServer), nombreTablas[i]));
-                
+
                 dsResult = client.Datasets.CreateOrUpdate(DatosGrales.resourceGroup, DatosGrales.dataFactoryName, "Dataset_" + nombreBD + "_" + nombreTablas[i], sqlDataset);
                 Console.Write((i + 1) + ". Dataset_" + nombreBD + "_" + nombreTablas[i] + " creado.\n");
             }
