@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Office.Interop.Excel;
 
 namespace ConsoleApp2
 {
@@ -30,7 +31,7 @@ namespace ConsoleApp2
 
             int opcion = 0;
             
-            while (opcion != 6)
+            while (opcion != 7)
             {
                 Console.Write("\n************* MENU *************\n");
                 Console.Write("\nSeleccione una opcion:\n");
@@ -39,7 +40,8 @@ namespace ConsoleApp2
                 Console.Write("3. Pipelines\n");
                 Console.Write("4. Correr pipe\n");
                 Console.Write("5. Triggers\n");
-                Console.Write("6. Salir\n");
+                Console.Write("6. Leer xml\n");
+                Console.Write("7. Salir\n");
 
                 opcion = Int32.Parse(Console.ReadLine());
 
@@ -60,8 +62,18 @@ namespace ConsoleApp2
                     case 5:
                         crearUpdateTriggers(client);
                         break;
+                    case 6:
+                        leerXLS();
+                        break;
                 }       
             }
+        }
+
+        private static void leerXLS()
+        {
+            Application xl = new Application();
+            xl.Workbooks.Open("C:/Drivers/testC.xls");
+
         }
 
         private static void traerTablasLakeaWarehouse()
